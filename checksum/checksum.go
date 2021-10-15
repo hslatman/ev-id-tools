@@ -18,7 +18,7 @@ func Verify(contractID string) (bool, error) {
 	normalizedContractID := normalize(contractID)
 
 	if len(normalizedContractID) != lengthIncludingCheckDigit {
-		return false, fmt.Errorf("normalized contract ID %s has invalid length: %d", contractID, len(contractID))
+		return false, fmt.Errorf("normalized contract ID does not include check digit")
 	}
 
 	checkDigit, err := CalculateCheckDigit(normalizedContractID)
@@ -99,7 +99,7 @@ func calculateR1(c4 int) int {
 }
 
 func calculateR2(c3, r1 int) int {
-	v := (c3 + r1) % 3
+	v := (c3 % 3) + r1
 	switch v {
 	case 0:
 		return 0
