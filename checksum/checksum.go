@@ -1,6 +1,9 @@
 package checksum
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	lengthExcludingCheckDigit = 14
@@ -11,18 +14,19 @@ const (
 func Verify(contractID string) (bool, error) {
 	// 1. perform contract format validation (based on regex?)
 	// 2. perform some other sanity checks?
-	// 3. perform normalization (i.e. remove -, uppercase)
 
-	if len(contractID) != lengthIncludingCheckDigit {
-		return false, fmt.Errorf("contract ID %s does not contain check digit", contractID)
+	normalizedContractID := normalize(contractID)
+
+	if len(normalizedContractID) != lengthIncludingCheckDigit {
+		return false, fmt.Errorf("normalized contract ID %s has invalid length: %d", contractID, len(contractID))
 	}
 
-	checkDigit, err := CalculateCheckDigit(contractID)
+	checkDigit, err := CalculateCheckDigit(normalizedContractID)
 	if err != nil {
 		return false, fmt.Errorf("could not calculate check digit: %w", err)
 	}
 
-	return string(contractID[14]) == checkDigit, nil
+	return string(normalizedContractID[14]) == checkDigit, nil
 }
 
 // CalculateCheckDigit calculates the check digit for a contract ID
@@ -30,17 +34,25 @@ func Verify(contractID string) (bool, error) {
 // ignores the last character in the first case.
 func CalculateCheckDigit(contractID string) (string, error) {
 
-	if len(contractID) < lengthExcludingCheckDigit || len(contractID) > lengthIncludingCheckDigit {
-		return "", fmt.Errorf("contract ID %s has invalid length: %d", contractID, len(contractID))
+	normalizedContractID := normalize(contractID)
+
+	if len(normalizedContractID) < lengthExcludingCheckDigit || len(normalizedContractID) > lengthIncludingCheckDigit {
+		return "", fmt.Errorf("normalized contract ID %s has invalid length: %d", normalizedContractID, len(normalizedContractID))
 	}
 
-	return calculateCheckDigit(contractID)
+	return calculateCheckDigit(normalizedContractID)
+}
+
+// normalize normalizes contract IDs by removing dashes and
+// converting lowercase characters to uppercase.
+func normalize(contractID string) string {
+	return strings.ToUpper(strings.ReplaceAll(contractID, "-", ""))
 }
 
 // calculateCheckDigit calculates the Contract ID Check Digit according
 // to the algorithm as described in "Check Digit Calculation for Contract-IDs"
 // It is available here: http://www.ochp.eu/wp-content/uploads/2014/02/E-Mobility-IDs_EVCOID_Check-Digit-Calculation_Explanation.pdf
-// This implementation is based on the one in http://www.ochp.eu/id-validator/
+// This implementation is based on the one in http://www.ochp.eu/id-validator/.
 func calculateCheckDigit(contractID string) (string, error) {
 
 	index := 0

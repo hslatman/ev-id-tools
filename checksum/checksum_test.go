@@ -4,6 +4,16 @@ import (
 	"testing"
 )
 
+const (
+	// Example from "Check Digit Calculation for Contract-IDs":
+	// http://www.ochp.eu/wp-content/uploads/2014/02/E-Mobility-IDs_EVCOID_Check-Digit-Calculation_Explanation.pdf
+	validContractID1 = "DE83DUIEN83QGZD"
+
+	// Example from Electric Vehicle ICT Interface Specifications V1.0, Part 2: Business Objects; section 1.2.2.1:
+	// http://emi3group.com/wp-content/uploads/sites/5/2018/12/eMI3-standard-v1.0-Part-2.pdf
+	validContractID2 = "DE-8AA-CA2B3C4D5-L"
+)
+
 func TestVerify(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -13,7 +23,19 @@ func TestVerify(t *testing.T) {
 	}{
 		{
 			name:       "ok",
-			contractID: "DE83DUIEN83QGZD", // TODO: reference source
+			contractID: validContractID1,
+			want:       true,
+			wantErr:    false,
+		},
+		{
+			name:       "ok/dashes",
+			contractID: validContractID2,
+			want:       true,
+			wantErr:    false,
+		},
+		{
+			name:       "ok/lowercase",
+			contractID: "de-8aa-ca2b3c4d5-l",
 			want:       true,
 			wantErr:    false,
 		},
@@ -53,8 +75,14 @@ func TestCalculateCheckDigit(t *testing.T) {
 	}{
 		{
 			name:       "ok",
-			contractID: "DE83DUIEN83QGZ", // TODO: reference source
+			contractID: validContractID1,
 			want:       "D",
+			wantErr:    false,
+		},
+		{
+			name:       "ok/dashes-without-check-digit",
+			contractID: "DE-8AA-CA2B3C4D5",
+			want:       "L",
 			wantErr:    false,
 		},
 		{
