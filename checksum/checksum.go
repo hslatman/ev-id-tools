@@ -53,7 +53,6 @@ func calculateCheckDigit(contractID string) (string, error) {
 	}
 
 	var c1, c2, c3, c4 int
-
 	for i := 0; i < lengthExcludingCheckDigit; i++ {
 		c1 += m[i*4]*p1[i][0] + m[i*4+1]*p1[i][2]
 		c2 += m[i*4]*p1[i][1] + m[i*4+1]*p1[i][3]
@@ -61,16 +60,10 @@ func calculateCheckDigit(contractID string) (string, error) {
 		c4 += m[i*4+2]*p2[i][1] + m[i*4+3]*p2[i][3]
 	}
 
-	c1 %= 2
-	c2 %= 2
-	c3 %= 3
-	c4 %= 3
+	q1, q2 := c1%2, c2%2
 
-	q1, q2 := c1, c2
-	var r1, r2 int
-
-	r1 = calculateR1(c4)
-	r2 = calculateR2(c3, r1)
+	r1 := calculateR1(c4)
+	r2 := calculateR2(c3, r1)
 
 	v := q1 + q2*2 + r1*4 + r2*16
 
@@ -80,7 +73,8 @@ func calculateCheckDigit(contractID string) (string, error) {
 }
 
 func calculateR1(c4 int) int {
-	switch c4 {
+	v := c4 % 3
+	switch v {
 	case 0:
 		return 0
 	case 1:
@@ -93,7 +87,7 @@ func calculateR1(c4 int) int {
 }
 
 func calculateR2(c3, r1 int) int {
-	v := c3 + r1
+	v := (c3 + r1) % 3
 	switch v {
 	case 0:
 		return 0
